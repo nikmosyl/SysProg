@@ -3,6 +3,9 @@
 #include <linux/fs.h>
 #include <asm/uaccess.h>
 
+MODULE_AUTHOR( "NikMos IU4_27");
+MODULE_LICENSE( "MosCorp." );
+
 int init_module(void);
 void cleanup_module(void);
 static int device_open(struct inode *, struct file *);
@@ -28,6 +31,8 @@ static struct file_operations fops = {
 
 int init_module(void)
 {
+	printk("    CHARDEV IS LOAD   ");
+
 	Major = register_chrdev(0, DEVICE_NAME, &fops);
 
 	if (Major < 0)
@@ -36,23 +41,22 @@ int init_module(void)
 		return Major;
 	}
 
-	printk("<1>I was assigned major number %d.  To talk to\n", Major);
-	printk("<1>the driver, create a dev file with\n");
+	printk("Для работы с устройством выполни команду:\n");
 	printk("'mknod /dev/chardev c %d 0'.\n", Major);
-	printk("<1>Try various minor numbers.  Try to cat and echo to\n");
-	printk("the device file.\n");
-	printk("<1>Remove the device file and module when done.\n");
+	printk("Чтоы узнать заработал ли модуль:\n");
+	printk("'cat /dev/chardev'\n");
+	printk("Чтобы отправить данные в устройство:\n");
+	printk("'echo \"hi\" > /dev/chardev '\n");
+	printk("Результаты можно посмотреть вот так:\n");
+	printk("'grep \".*\" /var/log/kern.log'\n");
+	printk("Не забудь удалить файл уст-ва и выгрузить модуль.\n");
 
 	return 0;
 }
 
 void cleanup_module(void)
 {
-	int ret = unregister_chrdev(Major, DEVICE_NAME);
-	if (ret < 0)
-	{
-		printk("Error in unregister_chrdev: %d\n", ret);
-	}
+        printk(KERN_ALERT "    CHARDEV IS UNLOAD   \n");
 }
 
 
@@ -60,11 +64,11 @@ void cleanup_module(void)
 
 static int device_open(struct inode *inode, struct file *file)
 {
-	static int counter = 0;
+	static int counter = 1;
 	if (Device_Open)
 	return -EBUSY;
 	Device_Open++;
-	sprintf(msg, "I already told you %d times Hello world!\n", counter++);
+	sprintf(msg, "Я уже сказал тебе %d раз: I LOADED!\n", counter++);
 	msg_Ptr = msg;
 	try_module_get(THIS_MODULE);
 
@@ -105,9 +109,8 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 //Pri zapisi dannih v process
 
 static ssize_t
-
 device_write(struct file *filp, const char *buff, size_t len, loff_t * off)
 {
-	printk("<1>Sorry, this operation isn't supported.\n");
+	printk("Сожалею, пока эта операция не потдерживается.\n");
 	return -EINVAL;
 }
