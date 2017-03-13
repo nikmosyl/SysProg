@@ -22,8 +22,10 @@ static ssize_t device_write(struct file *, const char *, size_t, loff_t *);
 
 static int Major;				//Верхний номер устройства
 static int Device_Open = 0; 			//количество удачных попыток открытия
-static char msg[BUF_LEN];			//бувер текста сообщения
+static char msg[BUF_LEN];			//буфер текста сообщения
 static char *msg_Ptr;				//текущий символ
+static char fullMsg[BUF_LEN];			//массив для хранения посланной пользователем строки
+static int fullMsgCounter = 0;			//количество переданных пользователем символов
 
 static struct file_operations fops = {		//создаем элемент структуры с
 	.read = device_read,			//переобозначением библиотечных команд
@@ -60,11 +62,8 @@ int init_module(void)
 void cleanup_module(void)
 {
 	printk(KERN_ALERT "    CHARDEV IS UNLOAD   \n\n\n\n");
+	unregister_chrdev(Major, DEVICE_NAME);
 }
-
-
-
-
 
 //Если открыть устройство командой cat /dev/chardev
 
@@ -72,20 +71,24 @@ static int device_open(struct inode *inode, struct file *file)
 {
 	static int counter = 1;				//счётчик попыток открытия
 
-	printk(KERN_ALERT"Выполнен вход в фунцию device_open\n");
-
 	if (Device_Open)
 	{
 		printk("Устройство занято\n");
 		return -EBUSY;
 	}
 	Device_Open++;
-	sprintf(msg, "Я уже сказал тебе %d раз: I LOADED!\n", counter++);
-	printk("DEBUG-2! После вывода сообщения\n");
+	if(fullMsgCounter==0)
+	{
+		sprintf(msg, "Я уже сказал тебе %d раз: I LOADED!\n", counter++);
+	}
+	else
+	{
+		sprintf(msg, fullMsg);
+		counter--;
+	}
 	msg_Ptr = msg;
 	try_module_get(THIS_MODULE);
 
-	printk(KERN_ALERT"DEBUG Сейчас будет выполен return SUCCESS функция device_open\n\n");
 	return SUCCESS;
 }
 
@@ -93,25 +96,20 @@ static int device_open(struct inode *inode, struct file *file)
 
 static int device_release(struct inode *inode, struct file *file)
 {
-	printk(KERN_ALERT"Выполнен вход в фунцию device_release\n");
 	Device_Open--;				//Сигнализируем о выходе из устройства и о его свободе
 	module_put(THIS_MODULE);
-	printk(KERN_ALERT"Выход из функции device-release Файл устройства закрыт\n\n");
 	return 0;
 }
-
 
 //При чтении данных с утройства
 
 static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_t * offset)
 {
 	int bytes_read = 0;						//Количество байт в буфере
+	fullMsgCounter = 0;
 
-	printk(KERN_ALERT"Выполнен вход в фунцию device_Read\n");
-
-	if (*msg_Ptr == 0)						//При достижении 
+	if (*msg_Ptr == 0)						//При достижении
 	{
-		printk("Конец сообщения выход из функции device_Read\n\n");
 		return 0;
 	}
 
@@ -121,31 +119,26 @@ static ssize_t device_read(struct file *filp, char *buffer, size_t length, loff_
 		length--;
 		bytes_read++;
 	}
-	printk(KERN_ALERT"DEBUG сейчас будет возвращен bytes_read из функции device_Read\n\n");
+
 	return bytes_read;
 }
 
 //Pri zapisi dannih v process
 
-static ssize_t device_write( struct file *filp, const char *buff, size_t len, loff_t * off )
+static ssize_t device_write(struct file *file, const char __user * buffer, size_t length, loff_t * offset)
 {
-	int byte_write = 0;
+	int i;
 
-	printk(KERN_ALERT"DEBUG вход в функцию device_Write\n\n");
-
-	if ( *msg_Ptr == 0 )
+	for (i = 0; i < length && i < BUF_LEN; i++)
 	{
-		printk("DEBUG *msg_Ptr=0 Сейчас будет выполнен return 0 выход из функции device_Write\n\n");
-		return 0;
+		get_user(msg[i], buffer+i);
+		printk("%c\n", msg[i]);
+		fullMsg[i] = msg[i];
+		fullMsgCounter = i;
 	}
 
-	while ( len && *msg_Ptr )
-	{
-		printk("%c", *buff++);
-		len--;
-		byte_write++;
-	}
-	printk(KERN_ALERT"DEBUG сейчас будет возвращен bytes_write из функции device_Write\n\n");
-	return byte_write;
-	//return -EINVAL;
+	msg_Ptr = msg;
+
+	return i;							//Вернуть количество принятых байт
 }
+
