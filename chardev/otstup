@@ -1,0 +1,3 @@
+echo "Делаем отступ"
+insmod ./otstup.ko
+rmmod otstup

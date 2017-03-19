@@ -1,0 +1,3 @@
+#инициализация chardevices
+
+echo "ДЕЛАЕМ MAKE" && make && echo "ДЕЛАЕМ INSMOD" && insmod ./chardev.ko

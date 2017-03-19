@@ -2,9 +2,11 @@
 #include <linux/kernel.h>       /* Здесь находится определение KERN_ALERT */
 #include <linux/init.h>         /* Здесь находятся определения макросов */
 
+#define DRIVER_AUTHOR "niksmos iu4-27"
+
 static int __init hello_2_init(void)
 {
-        printk(KERN_ALERT "Hello, world 2\n");
+        printk(KERN_ALERT "Hello, world 2!!!\n");
         return 0;
 }
 

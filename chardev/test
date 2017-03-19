@@ -1,0 +1,35 @@
+#файл тестирования в автоматическом режиме
+./otstup
+echo "Создаём устройство mknod /dev/chardev c $1 0"
+mknod /dev/chardev c $1 0
+./otstup
+
+echo "Проверяем работоспособность cat /dev/chardev"
+cat /dev/chardev
+./otstup
+
+echo "Пишем данные в устройство eсho $2 > /dev/chardev"
+echo "$2" > /dev/chardev
+./otstup
+
+echo "Пробуем читать cat /dev/chardev"
+cat /dev/chardev
+./otstup
+
+echo "Пишем данные в устройство eсho $3 > /dev/chardev"
+echo "$3" > /dev/chardev
+./otstup
+
+echo "Пробуем читать cat /dev/chardev"
+cat /dev/chardev
+./otstup
+
+echo "Размонтируем устройство rmmod chardev"
+rmmod chardev
+echo "Удаляем файл устройства rm /dev/chardev"
+rm /dev/chardev
+echo "Финиш!"
+./otstup
+./otstup
+./otstup
+./otstup

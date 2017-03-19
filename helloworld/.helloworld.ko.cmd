@@ -1,1 +1,0 @@
-cmd_/root/seminari/helloworld/helloworld.ko := ld -r -m elf_i386 -T ./scripts/module-common.lds --build-id  -o /root/seminari/helloworld/helloworld.ko /root/seminari/helloworld/helloworld.o /root/seminari/helloworld/helloworld.mod.o ;  true
