@@ -48,6 +48,7 @@ int init_module(void)
 
 	printk("Для работы с устройством выполни команду:\n");
 	printk("'mknod /dev/chardev c %d 0'.\n", Major);
+	printk("Major %d\n", Major);
 	printk("Чтоы узнать заработал ли модуль:\n");
 	printk("'cat /dev/chardev'\n");
 	printk("Чтобы отправить данные в устройство:\n");
