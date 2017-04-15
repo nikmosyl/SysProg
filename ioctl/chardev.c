@@ -60,7 +60,7 @@ static ssize_t device_read(struct file *file, char __user * buffer, size_t lengt
 		bytes_read++;
 	}
 
-	printk("Read %d bytes, %d left\n", bytes_read, length);
+	printk("Прочитано %d байт, %d потеряно\n", bytes_read, length);
 
 	return bytes_read;							//колчество байт закинутых в буфер
 }
@@ -69,7 +69,7 @@ static ssize_t device_read(struct file *file, char __user * buffer, size_t lengt
 static ssize_t device_write(struct file *file, const char __user * buffer, size_t length, loff_t * offset)
 {
 	int i;
-	printk("device_write(%p,%s,%d)", file, buffer, length);
+	printk("device_write(%p,%d)", file, length);
 
 	for (i = 0; i < length && i < BUF_LEN; i++)
 	{
@@ -125,29 +125,27 @@ struct file_operations Fops = {
 int init_module()
 {
 	int ret_val;
+
+	printk(KERN_ALERT"Устройство mydev загружено!\n");
+
 	ret_val = register_chrdev(MAJOR_NUM, DEVICE_NAME, &Fops);
 
 	if (ret_val < 0)
 	{
-		printk("%s failed with %d\n", "Sorry, registering the character device ", ret_val);
+		printk("%s провал с %d\n", "Извините, регистрация символьного устройства ", ret_val);
 		return ret_val;
 	}
 
-	printk("%s The major device number is %d.\n", "Registeration is a success", MAJOR_NUM);
-	printk("If you want to talk to the device driver,\n");
-	printk("you'll have to create a device file. \n");
-	printk("We suggest you use:\n");
+	printk("Регистрация удалась. Major number устройства: %d.\n", MAJOR_NUM);
+	printk("Используй команду:\n");
 	printk("mknod %s c %d 0\n", DEVICE_FILE_NAME, MAJOR_NUM);
-	printk("The device file name is important, because\n");
-	printk("the ioctl program assumes that's the\n");
-	printk("file you'll use.\n");
 
 	return 0;
 }
 
 void cleanup_module()
 {
-	printk(KERN_ALERT"Устройство chardev выгружено!\n\n\n");
+	printk(KERN_ALERT"Устройство mydev выгружено!\n\n\n");
 	unregister_chrdev(MAJOR_NUM, DEVICE_NAME);
 }
 
